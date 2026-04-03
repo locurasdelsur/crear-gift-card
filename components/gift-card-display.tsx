@@ -111,6 +111,20 @@ export function GiftCardDisplay({ templateUrl, code, raffleNumber, platform }: G
           Sorteo: {raffleNumber}
         </div>
       )}
+
+      {/* WhatsApp — esquina inferior derecha */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/whatsapp.png"
+        alt="WhatsApp contact"
+        style={{
+          position: "absolute",
+          right: "2.5%",
+          bottom: "2.5%",
+          height: "6%",
+          width: "auto",
+        }}
+      />
     </div>
   )
 }

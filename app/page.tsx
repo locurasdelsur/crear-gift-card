@@ -128,50 +128,80 @@ export default function GiftCardGenerator() {
       ctx.textAlign = "center"
       ctx.textBaseline = "middle"
 
+      // Helper function to draw raffle badge
+      const drawRaffleBadge = () => {
+        if (!generatedData.raffleNumber) return
+        const label = `Sorteo: ${generatedData.raffleNumber}`
+        const fontSize = Math.round(W * 0.028)
+        ctx.font = `bold ${fontSize}px Arial, sans-serif`
+        const measured = ctx.measureText(label)
+        const padX = W * 0.02
+        const padY = H * 0.015
+        const boxX = W * 0.025
+        const boxW = measured.width + padX * 2
+        const boxH = fontSize + padY * 2
+        const boxY = H - boxH - H * 0.03
+        ctx.fillStyle = "#ffffff"
+        ctx.beginPath()
+        ctx.roundRect(boxX, boxY, boxW, boxH, 8)
+        ctx.fill()
+        ctx.fillStyle = "#1a1a1a"
+        ctx.textAlign = "left"
+        ctx.textBaseline = "middle"
+        ctx.fillText(label, boxX + padX, boxY + boxH / 2)
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+      }
+
+      // Helper function to draw WhatsApp image
+      const drawWhatsApp = (whatsappImg: HTMLImageElement) => {
+        const whatsappHeight = H * 0.06
+        const whatsappWidth = (whatsappImg.naturalWidth / whatsappImg.naturalHeight) * whatsappHeight
+        const whatsappX = W - whatsappWidth - W * 0.025
+        const whatsappY = H - whatsappHeight - H * 0.025
+        ctx.drawImage(whatsappImg, whatsappX, whatsappY, whatsappWidth, whatsappHeight)
+      }
+
       if (generatedData.platform === "roblox") {
         ctx.fillStyle = "#000000"
-        ctx.font = `bold ${Math.round(W * 0.04)}px Arial, sans-serif`
-        ctx.fillText(generatedData.code, W * (0.195 + 0.61 / 2), H * (0.5625 + 0.155 / 2), W * 0.61)
-        if (generatedData.raffleNumber) {
-          const label = `Sorteo: ${generatedData.raffleNumber}`
-          const fontSize = Math.round(W * 0.028)
-          ctx.font = `bold ${fontSize}px Arial, sans-serif`
-          const measured = ctx.measureText(label)
-          const padX = W * 0.02
-          const padY = H * 0.015
-          const boxX = W * 0.025
-          const boxW = measured.width + padX * 2
-          const boxH = fontSize + padY * 2
-          const boxY = H - boxH - H * 0.03
-          ctx.fillStyle = "#ffffff"
-          ctx.beginPath()
-          ctx.roundRect(boxX, boxY, boxW, boxH, 8)
-          ctx.fill()
-          ctx.fillStyle = "#1a1a1a"
-          ctx.textAlign = "left"
-          ctx.textBaseline = "middle"
-          ctx.fillText(label, boxX + padX, boxY + boxH / 2)
-          ctx.textAlign = "center"
-          ctx.textBaseline = "middle"
-        }
+        ctx.font = `bold ${Math.round(W * 0.035)}px Arial, sans-serif`
+        // Ajustado: posicion Y mas arriba para no cortar numeros
+        ctx.fillText(generatedData.code, W * (0.195 + 0.61 / 2), H * 0.635, W * 0.61)
+        drawRaffleBadge()
       } else if (generatedData.platform === "steam") {
         ctx.fillStyle = "#000000"
         ctx.font = `bold ${Math.round(W * 0.02)}px Arial, sans-serif`
         ctx.fillText(generatedData.code, W * 0.5, H * (0.541 + 0.030 / 2), W * 0.557)
+        drawRaffleBadge()
       }
 
-      canvas.toBlob((blob) => {
-        if (!blob) return
-        const url = URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `${generatedData.platform}-${generatedData.product.replace(/ /g, "-")}-giftcard.png`
-        link.style.display = "none"
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        URL.revokeObjectURL(url)
-      }, "image/png")
+      // Load and draw WhatsApp image, then export
+      const whatsappImg = new Image()
+      whatsappImg.crossOrigin = "anonymous"
+      whatsappImg.onload = () => {
+        drawWhatsApp(whatsappImg)
+        exportCanvas()
+      }
+      whatsappImg.onerror = () => {
+        // If WhatsApp image fails to load, export without it
+        exportCanvas()
+      }
+      whatsappImg.src = "/whatsapp.png"
+
+      const exportCanvas = () => {
+        canvas.toBlob((blob) => {
+          if (!blob) return
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement("a")
+          link.href = url
+          link.download = `${generatedData.platform}-${generatedData.product.replace(/ /g, "-")}-giftcard.png`
+          link.style.display = "none"
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+        }, "image/png")
+      }
     }
 
     img.onerror = () => setError("No se pudo cargar la imagen del template.")
